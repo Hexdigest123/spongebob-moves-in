@@ -6,7 +6,6 @@ Build Bikini Bottom, unlock iconic characters, complete quests, and bring the un
 
 *Built with C and Raylib.*
 
----
 
 ## What is SpongeBob Moves In! Reimagined?
 
@@ -16,7 +15,6 @@ The goal is to recreate the charm, progression, humor, and city-building gamepla
 
 Whether you played the original game for years or are discovering it for the first time, this project aims to bring the experience back to life.
 
----
 
 ## Features
 
@@ -51,7 +49,6 @@ Planned support for:
 * Linux
 * macOS
 
----
 
 ## Current Progress
 
@@ -66,7 +63,6 @@ Current focus areas:
 * Quest system
 * Asset pipeline
 
----
 
 ## Technology
 
@@ -77,7 +73,6 @@ Current focus areas:
 | Database     | SQLite     |
 | Data Formats | JSON       |
 
----
 
 ## Contributing
 
@@ -87,13 +82,11 @@ Whether you're a developer, artist, designer, tester, or simply a fan of the ori
 
 Feature ideas, bug reports, pull requests, and feedback are all appreciated.
 
----
 
 ## Screenshots
 
 Screenshots and gameplay previews will be added as development progresses.
 
----
 
 ## License
 
