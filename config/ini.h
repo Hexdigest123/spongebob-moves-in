@@ -9,12 +9,15 @@ home page for more info:
 
 https://github.com/benhoyt/inih
 
+Non-Official additions were made by Hexdigest123 regarding writing to INI files
+and file handling.
 */
 
 #ifndef INI_H
 #define INI_H
 
 /* Make this header file easier to include in C++ code */
+#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -101,6 +104,25 @@ INI_API int ini_parse_string(const char *string, ini_handler handler,
    already in memory, or interfacing with C++ std::string_view. */
 INI_API int ini_parse_string_length(const char *string, size_t length,
                                     ini_handler handler, void *user);
+
+typedef struct {
+  const char *version;
+  const char *name;
+  int width;
+  int height;
+  int fps;
+  bool fullscreen;
+  int volume;
+} configuration;
+
+/* Write/Overwrite a single name=value pair to the given file.
+   Returns -1 on error, length of bytes written on success*/
+INI_API int ini_write_pair(FILE *file, const char *section, const char *name,
+                           const char *value);
+
+/* configuration handler read-only */
+int LoadConfigurationHandler(void *config, const char *section,
+                             const char *name, const char *value);
 
 /* Nonzero to allow multi-line value parsing, in the style of Python's
    configparser. If allowed, ini_parse() will call the handler with the same

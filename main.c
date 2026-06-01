@@ -5,40 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-
-typedef struct {
-  const char *version;
-  const char *name;
-  int width;
-  int height;
-  int fps;
-  bool fullscreen;
-  int volume;
-} configuration;
-
-static int LoadConfigurationHandler(void *config, const char *section,
-                                    const char *name, const char *value) {
-  configuration *pconfig = (configuration *)config;
-
-  if (MATCH("general", "version")) {
-    pconfig->version = strdup(value);
-  } else if (MATCH("general", "name")) {
-    pconfig->name = strdup(value);
-  } else if (MATCH("graphics", "width")) {
-    pconfig->width = atoi(value);
-  } else if (MATCH("graphics", "height")) {
-    pconfig->height = atoi(value);
-  } else if (MATCH("graphics", "fps")) {
-    pconfig->fps = atoi(value);
-  } else if (MATCH("graphics", "fullscreen")) {
-    pconfig->fullscreen = (strcmp(value, "true") == 0);
-  } else {
-    return 0; /* unknown section/name, error */
-  }
-  return 1;
-}
-
 int main(void) {
 
   configuration config;
@@ -99,5 +65,7 @@ int main(void) {
   UnloadMedia(&mStreamIntro);
   CloseAudioDevice();
   CloseWindow();
+  free((char *)config.version);
+  free((char *)config.name);
   return 0;
 }

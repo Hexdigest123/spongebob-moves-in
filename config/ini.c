@@ -9,8 +9,11 @@ home page for more info:
 
 https://github.com/benhoyt/inih
 
+Non-Official additions were made by Hexdigest123 regarding writing to INI files
+and file handling.
 */
 
+#include <stdbool.h>
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -18,7 +21,9 @@ https://github.com/benhoyt/inih
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "ini.h"
 
@@ -38,6 +43,7 @@ void *ini_realloc(void *ptr, size_t size);
 
 #define MAX_SECTION 50
 #define MAX_NAME 50
+#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
 
 /* Used by ini_parse_string() to keep track of string parsing state. */
 typedef struct {
@@ -60,19 +66,25 @@ static char *ini_lskip(const char *s) {
   return (char *)s;
 }
 
-/* Return pointer to first char (of chars) or inline comment in given string,
-   or pointer to NUL at end of string if neither found. Inline comment must
-   be prefixed by a whitespace character to register as a comment. */
+/* Like ini_lskip(), but safe for scanning lines inside a full-file buffer. */
+static char *ini_lskip_line(const char *s) {
+  while (*s && *s != '\n' && *s != '\r' && isspace((unsigned char)(*s)))
+    s++;
+  return (char *)s;
+}
+
+/* Return pointer to first char (of chars), inline comment, or line end. Inline
+   comment must be prefixed by a whitespace character to register as a comment. */
 static char *ini_find_chars_or_comment(const char *s, const char *chars) {
 #if INI_ALLOW_INLINE_COMMENTS
   int was_space = 0;
-  while (*s && (!chars || !strchr(chars, *s)) &&
+  while (*s && *s != '\n' && *s != '\r' && (!chars || !strchr(chars, *s)) &&
          !(was_space && strchr(INI_INLINE_COMMENT_PREFIXES, *s))) {
     was_space = isspace((unsigned char)(*s));
     s++;
   }
 #else
-  while (*s && (!chars || !strchr(chars, *s))) {
+  while (*s && *s != '\n' && *s != '\r' && (!chars || !strchr(chars, *s))) {
     s++;
   }
 #endif
@@ -88,6 +100,91 @@ static char *ini_strncpy0(char *dest, const char *src, size_t size) {
     dest[i] = src[i];
   dest[i] = '\0';
   return dest;
+}
+
+static char *ini_line_end(char *line) {
+  char *end = strchr(line, '\n');
+  return end ? end + 1 : line + strlen(line);
+}
+
+static int ini_line_matches_section(char *line, const char *section) {
+  size_t section_len;
+  char *start = ini_lskip_line(line);
+  char *end;
+
+  if (*start != '[')
+    return 0;
+
+  end = start + 1;
+  while (*end && *end != '\n' && *end != '\r' && *end != ']')
+    end++;
+  if (*end != ']')
+    return 0;
+
+  section_len = (size_t)(end - (start + 1));
+  return strlen(section) == section_len &&
+         strncmp(start + 1, section, section_len) == 0;
+}
+
+static int ini_line_matches_name(char *line, const char *name) {
+  size_t name_len;
+  char *start = ini_lskip_line(line);
+  char *separator;
+  char *end;
+
+  if (*start == '\0' || *start == '\n' || *start == '\r' || *start == '[' ||
+      strchr(INI_START_COMMENT_PREFIXES, *start))
+    return 0;
+
+  separator = ini_find_chars_or_comment(start, "=:");
+  if (*separator != '=' && *separator != ':')
+    return 0;
+
+  end = separator;
+  while (end > start && isspace((unsigned char)*(end - 1)))
+    end--;
+
+  name_len = (size_t)(end - start);
+  return strlen(name) == name_len && strncmp(start, name, name_len) == 0;
+}
+
+static char *ini_find_section(char *content, const char *section,
+                              char **section_end) {
+  char *line = content;
+
+  *section_end = content + strlen(content);
+  while (*line) {
+    char *next = ini_line_end(line);
+
+    if (ini_line_matches_section(line, section)) {
+      char *scan = next;
+      while (*scan) {
+        char *scan_start = ini_lskip_line(scan);
+        if (*scan_start == '[') {
+          *section_end = scan;
+          break;
+        }
+        scan = ini_line_end(scan);
+      }
+      return line;
+    }
+
+    line = next;
+  }
+
+  return NULL;
+}
+
+static char *ini_find_name(char *start, char *end, const char *name) {
+  char *line = start;
+
+  while (line < end && *line) {
+    if (ini_line_matches_name(line, name))
+      return line;
+    line = ini_line_end(line);
+  }
+
+  return NULL;
 }
 
 /* See documentation in header file. */
@@ -318,4 +415,126 @@ int ini_parse_string_length(const char *string, size_t length,
   ctx.ptr = string;
   ctx.num_left = length;
   return ini_parse_stream((ini_reader)ini_reader_string, &ctx, handler, user);
+}
+
+/**
+ * @brief Writes a key-value pair to an INI file.
+ * If section is not NULL, writes the section header first.
+ *
+ * @param file pointer to file handler
+ * @param section const char section name to write too
+ * @param name const char key name
+ * @param value const char key value
+ * @return -1 on error, >=0 on success
+ */
+int ini_write_pair(FILE *file, const char *section, const char *name,
+                   const char *value) {
+  long file_size;
+  size_t bytes_read;
+  char *file_content;
+  char *search_start;
+  char *section_end;
+  char *pair_start;
+  char *pair_end;
+  long written;
+
+  if (!file || !name || !value)
+    return -1;
+
+  if (fseek(file, 0, SEEK_END) != 0)
+    return -1;
+
+  file_size = ftell(file);
+  if (file_size < 0)
+    return -1;
+
+  file_content = (char *)malloc((size_t)file_size + 1);
+  if (!file_content)
+    return -1;
+
+  rewind(file);
+  bytes_read = fread(file_content, 1, (size_t)file_size, file);
+  if (bytes_read != (size_t)file_size && ferror(file)) {
+    free(file_content);
+    return -1;
+  }
+  file_content[bytes_read] = '\0';
+
+  search_start = file_content;
+  section_end = file_content + bytes_read;
+
+  if (section && section[0]) {
+    search_start = ini_find_section(file_content, section, &section_end);
+    if (!search_start) {
+      if (fseek(file, 0, SEEK_SET) != 0) {
+        free(file_content);
+        return -1;
+      }
+      written = fprintf(
+          file, "%s%s[%s]\n%s=%s\n", file_content,
+          bytes_read > 0 && file_content[bytes_read - 1] != '\n' ? "\n" : "",
+          section, name, value);
+      if (written < 0 || fflush(file) != 0 ||
+          ftruncate(fileno(file), ftell(file)) != 0) {
+        free(file_content);
+        return -1;
+      }
+      free(file_content);
+      rewind(file);
+      return (int)written;
+    }
+  }
+
+  pair_start = ini_find_name(search_start, section_end, name);
+  if (pair_start) {
+    pair_end = ini_line_end(pair_start);
+    if (fseek(file, 0, SEEK_SET) != 0) {
+      free(file_content);
+      return -1;
+    }
+    written = fprintf(file, "%.*s%s=%s\n%s", (int)(pair_start - file_content),
+                      file_content, name, value, pair_end);
+  } else {
+    if (fseek(file, 0, SEEK_SET) != 0) {
+      free(file_content);
+      return -1;
+    }
+    written = fprintf(
+        file, "%.*s%s%s=%s\n%s", (int)(section_end - file_content),
+        file_content,
+        section_end > file_content && *(section_end - 1) != '\n' ? "\n" : "",
+        name, value, section_end);
+  }
+
+  if (written < 0 || fflush(file) != 0 ||
+      ftruncate(fileno(file), ftell(file)) != 0) {
+    free(file_content);
+    return -1;
+  }
+
+  free(file_content);
+  rewind(file);
+  return (int)written;
+}
+
+int LoadConfigurationHandler(void *config, const char *section,
+                             const char *name, const char *value) {
+  configuration *pconfig = (configuration *)config;
+
+  if (MATCH("general", "version")) {
+    pconfig->version = strdup(value);
+  } else if (MATCH("general", "name")) {
+    pconfig->name = strdup(value);
+  } else if (MATCH("graphics", "width")) {
+    pconfig->width = atoi(value);
+  } else if (MATCH("graphics", "height")) {
+    pconfig->height = atoi(value);
+  } else if (MATCH("graphics", "fps")) {
+    pconfig->fps = atoi(value);
+  } else if (MATCH("graphics", "fullscreen")) {
+    pconfig->fullscreen = (strcmp(value, "true") == 0);
+  } else {
+    return 0;
+  }
+  return 1;
 }
