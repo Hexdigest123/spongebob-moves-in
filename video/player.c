@@ -2086,7 +2086,7 @@ int AVProcessAudioFrame(const MediaStream *media) {
   // Initialize input data and sample count for conversion. After the first
   // call, inData and inSamples will be set to NULL and 0 respectively to signal
   // swr_convert to finish processing remaining data.
-  const uint8_t *const *inData = (const uint8_t *const *)ctx->avFrame->data;
+  const uint8_t **inData = (const uint8_t **)ctx->avFrame->data;
   int inSamples = ctx->avFrame->nb_samples;
 
   // Initialize the number of samples left to convert. The loop will continue

@@ -44,7 +44,8 @@ jobs:
             libxinerama-dev \
             libxrandr-dev \
             make \
-            pkg-config
+            pkg-config \
+            xvfb
 
       - name: Install raylib
         run: |
@@ -63,7 +64,7 @@ jobs:
 
       - name: Run tests
         run: |
-          make test
+          xvfb-run -a make test
 
       - name: Build with warnings as errors
         run: |
@@ -74,4 +75,4 @@ jobs:
         run: |
           make clean || true
           make CC=${{ matrix.compiler }} CFLAGS="-fsanitize=address,undefined -g"
-          make test
+          xvfb-run -a make test

@@ -47,6 +47,10 @@ int main(void) {
   MediaStream mStreamIntro =
       LoadMediaEx("./assets/video/general/1_intro.m4v", MEDIA_LOAD_AV);
 
+#ifdef TESTING
+  int testFrames = 0;
+#endif
+
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
@@ -81,6 +85,12 @@ int main(void) {
     }
 
     EndDrawing();
+
+#ifdef TESTING
+    if (++testFrames >= 1) {
+      break;
+    }
+#endif
   }
 
   UnloadFont(spongebobFont);
