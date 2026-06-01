@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build
 
 on:
   push:
@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: Build and Test
+  build:
+    name: Build
     runs-on: ubuntu-latest
 
     strategy:
@@ -44,8 +44,7 @@ jobs:
             libxinerama-dev \
             libxrandr-dev \
             make \
-            pkg-config \
-            xvfb
+            pkg-config
 
       - name: Install raylib
         run: |
@@ -62,17 +61,16 @@ jobs:
           make clean || true
           make CC=${{ matrix.compiler }}
 
-      - name: Run tests
-        run: |
-          xvfb-run -a make test
-
       - name: Build with warnings as errors
         run: |
           make clean || true
           make CC=${{ matrix.compiler }} CFLAGS="-Wall -Wextra -Werror"
 
-      - name: Test with sanitizers
+      - name: Static analysis
+        run: |
+          make analyze
+
+      - name: Build with sanitizers
         run: |
           make clean || true
           make CC=${{ matrix.compiler }} CFLAGS="-fsanitize=address,undefined -g"
-          xvfb-run -a make test

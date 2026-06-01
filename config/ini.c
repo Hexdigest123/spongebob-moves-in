@@ -235,7 +235,11 @@ int ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
 #endif
 
   /* Scan through stream line by line */
-  while (reader(line, (int)max_line, stream) != NULL) {
+  for (;;) {
+    memset(line, 0, max_line);
+    if (reader(line, (int)max_line, stream) == NULL)
+      break;
+
     offset = strlen(line);
 
 #if INI_ALLOW_REALLOC && !INI_USE_STACK
@@ -259,7 +263,7 @@ int ini_parse_stream(ini_reader reader, void *stream, ini_handler handler,
     lineno++;
 
     /* If line exceeded INI_MAX_LINE bytes, discard till end of line. */
-    if (offset == max_line - 1 && line[offset - 1] != '\n') {
+    if (offset > 0 && offset == max_line - 1 && line[offset - 1] != '\n') {
       while (reader(abyss, sizeof(abyss), stream) != NULL) {
         if (!error)
           error = lineno;
@@ -453,7 +457,10 @@ int ini_write_pair(FILE *file, const char *section, const char *name,
   if (!file_content)
     return -1;
 
-  rewind(file);
+  if (fseek(file, 0, SEEK_SET) != 0) {
+    free(file_content);
+    return -1;
+  }
   bytes_read = fread(file_content, 1, (size_t)file_size, file);
   if (bytes_read != (size_t)file_size && ferror(file)) {
     free(file_content);

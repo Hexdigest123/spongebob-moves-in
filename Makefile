@@ -1,4 +1,4 @@
-.PHONY: all run release run-release clean test
+.PHONY: all run release run-release clean test analyze
 
 CC := clang
 CFLAGS := -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer
@@ -39,6 +39,18 @@ test:
 	mkdir -p build
 	$(CC) $(CFLAGS) $(SRC) -o $(OUT) $(LDFLAGS) $(LDLIBS)
 	./$(OUT)
+
+analyze:
+	echo "Running static analysis..."
+	@if ! analysis_output="$$(clang --analyze -Xanalyzer -analyzer-output=text $(SRC) 2>&1)"; then \
+		printf '%s\n' "$$analysis_output"; \
+		exit 1; \
+	fi; \
+	if [ -n "$$analysis_output" ]; then \
+		printf '%s\n' "$$analysis_output"; \
+		exit 1; \
+	fi
+
 clean:
 	echo "Cleaning up build artifacts..."
 	rm -rf build/

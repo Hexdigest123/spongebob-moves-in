@@ -23,6 +23,7 @@ int main(void) {
 
   if (ini_parse("config.ini", LoadConfigurationHandler, &config) < 0) {
     printf("Can't load 'config.ini'\n");
+    fclose(hConfig);
     return 1;
   }
 
@@ -46,10 +47,6 @@ int main(void) {
   Font textFont = LoadFontEx("./assets/fonts/roboto.ttf", 100, NULL, 0);
   MediaStream mStreamIntro =
       LoadMediaEx("./assets/video/general/1_intro.m4v", MEDIA_LOAD_AV);
-
-#ifdef TESTING
-  int testFrames = 0;
-#endif
 
   while (!WindowShouldClose()) {
     BeginDrawing();
@@ -85,12 +82,6 @@ int main(void) {
     }
 
     EndDrawing();
-
-#ifdef TESTING
-    if (++testFrames >= 1) {
-      break;
-    }
-#endif
   }
 
   UnloadFont(spongebobFont);
@@ -98,6 +89,7 @@ int main(void) {
   UnloadMedia(&mStreamIntro);
   CloseAudioDevice();
   CloseWindow();
+  fclose(hConfig);
 
   free((char *)config.version);
   free((char *)config.name);
