@@ -23,10 +23,38 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install C build tools and raylib
+      - name: Install C dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential clang make pkg-config libraylib-dev
+          sudo apt-get install -y \
+            build-essential \
+            clang \
+            cmake \
+            libasound2-dev \
+            libavcodec-dev \
+            libavformat-dev \
+            libavutil-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libswresample-dev \
+            libswscale-dev \
+            libx11-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            make \
+            pkg-config
+
+      - name: Install raylib
+        run: |
+          git clone --depth 1 --branch 5.5 https://github.com/raysan5/raylib.git /tmp/raylib
+          cmake -S /tmp/raylib -B /tmp/raylib/build \
+            -DBUILD_EXAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build /tmp/raylib/build --parallel
+          sudo cmake --install /tmp/raylib/build
+          sudo ldconfig
 
       - name: Build with ${{ matrix.compiler }}
         run: |
