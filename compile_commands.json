@@ -32,6 +32,38 @@
     "output": "build/main"
   },
   {
+    "file": "scenes/intro.c",
+    "arguments": [
+      "/usr/bin/clang",
+      "-g",
+      "-O1",
+      "-fsanitize=address,undefined",
+      "-fno-omit-frame-pointer",
+      "scenes/intro.c",
+      "-o",
+      "build/main",
+      "-fsanitize=address,undefined"
+    ],
+    "directory": "/home/user/Projects/spongebob-moves-in",
+    "output": "build/main"
+  },
+  {
+    "file": "scenes/scene_manager.c",
+    "arguments": [
+      "/usr/bin/clang",
+      "-g",
+      "-O1",
+      "-fsanitize=address,undefined",
+      "-fno-omit-frame-pointer",
+      "scenes/scene_manager.c",
+      "-o",
+      "build/main",
+      "-fsanitize=address,undefined"
+    ],
+    "directory": "/home/user/Projects/spongebob-moves-in",
+    "output": "build/main"
+  },
+  {
     "file": "video/player.c",
     "arguments": [
       "/usr/bin/clang",
