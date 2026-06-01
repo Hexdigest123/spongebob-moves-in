@@ -113,6 +113,7 @@ typedef struct {
   int fps;
   bool fullscreen;
   int volume;
+  bool intro;
 } configuration;
 
 /* Write/Overwrite a single name=value pair to the given file.

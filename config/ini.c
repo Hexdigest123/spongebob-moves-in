@@ -74,7 +74,8 @@ static char *ini_lskip_line(const char *s) {
 }
 
 /* Return pointer to first char (of chars), inline comment, or line end. Inline
-   comment must be prefixed by a whitespace character to register as a comment. */
+   comment must be prefixed by a whitespace character to register as a comment.
+ */
 static char *ini_find_chars_or_comment(const char *s, const char *chars) {
 #if INI_ALLOW_INLINE_COMMENTS
   int was_space = 0;
@@ -533,6 +534,8 @@ int LoadConfigurationHandler(void *config, const char *section,
     pconfig->fps = atoi(value);
   } else if (MATCH("graphics", "fullscreen")) {
     pconfig->fullscreen = (strcmp(value, "true") == 0);
+  } else if (MATCH("game", "intro")) {
+    pconfig->intro = (strcmp(value, "true") == 0);
   } else {
     return 0;
   }
