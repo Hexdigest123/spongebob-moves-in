@@ -1,0 +1,34 @@
+[
+  {
+    "file": "main.c",
+    "arguments": [
+      "/usr/bin/clang",
+      "-g",
+      "-O1",
+      "-fsanitize=address,undefined",
+      "-fno-omit-frame-pointer",
+      "main.c",
+      "-o",
+      "build/main",
+      "-fsanitize=address,undefined"
+    ],
+    "directory": "/home/user/Projects/spongebob-moves-in",
+    "output": "build/main"
+  },
+  {
+    "file": "video/player.c",
+    "arguments": [
+      "/usr/bin/clang",
+      "-g",
+      "-O1",
+      "-fsanitize=address,undefined",
+      "-fno-omit-frame-pointer",
+      "video/player.c",
+      "-o",
+      "build/main",
+      "-fsanitize=address,undefined"
+    ],
+    "directory": "/home/user/Projects/spongebob-moves-in",
+    "output": "build/main"
+  }
+]
