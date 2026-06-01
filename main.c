@@ -53,6 +53,9 @@ int main(void) {
     ClearBackground(RAYWHITE);
 
     if (IsKeyPressed(KEY_F11)) {
+      config.fullscreen = !config.fullscreen;
+      ini_write_pair(hConfig, "graphics", "fullscreen",
+                     config.fullscreen ? "true" : "false");
       ToggleFullscreen();
     }
 
