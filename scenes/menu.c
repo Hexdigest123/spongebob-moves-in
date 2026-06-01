@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "scene_manager.h"
 #include <raylib.h>
 #include <stdio.h>
 
@@ -33,10 +34,18 @@ void MenuScene_Init(void) {
 }
 
 void MenuScene_Draw(void) {
+  Vector2 mousePosition = GetMousePosition();
+  if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+      CheckCollisionPointRec(
+          mousePosition,
+          (Rectangle){.x = 150, .y = 150, .width = 100, .height = 100})) {
+    SceneManager_RequestQuit();
+  }
+
   DrawTextureEx(wallpaperTexture, (Vector2){0, 0}, 0, 1, WHITE);
   DrawTexturePro(uiTextures, homeSrc,
                  (Rectangle){.x = 150, .y = 150, .width = 100, .height = 100},
-                 (Vector2){.x = 100, .y = 100}, 0, WHITE);
+                 (Vector2){}, 0, WHITE);
   DrawTexturePro(uiTextures, buttonSrc,
                  (Rectangle){.x = 650, .y = 800, .width = 600, .height = 200},
                  (Vector2){}, 0, WHITE);

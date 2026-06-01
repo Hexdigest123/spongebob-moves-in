@@ -13,5 +13,7 @@ void SceneManager_Update(void);
 void SceneManager_Draw(void);
 void SceneManager_ChangeScene(SceneId nextScene);
 void SceneManager_Unload(void);
+void SceneManager_RequestQuit(void);
+bool SceneManager_ShouldQuit(void);
 
 #endif

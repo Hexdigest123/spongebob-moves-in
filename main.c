@@ -28,7 +28,7 @@ int main(void) {
 
   SceneManager_Init(SCENE_MENU, &config);
 
-  while (!WindowShouldClose()) {
+  while (!WindowShouldClose() && !SceneManager_ShouldQuit()) {
     SceneManager_Update();
 
     BeginDrawing();

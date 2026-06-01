@@ -39,7 +39,7 @@ void IntroScene_Draw(void) {
                       (float)introMedia.videoTexture.height};
   Rectangle dest = {0, 0, (float)GetScreenWidth(), (float)GetScreenHeight()};
 
-  DrawTexturePro(introMedia.videoTexture, source, dest, (Vector2){0, 0}, 0.0f,
+  DrawTexturePro(introMedia.videoTexture, source, dest, (Vector2){}, 0.0f,
                  WHITE);
 }
 

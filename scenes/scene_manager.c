@@ -4,6 +4,7 @@
 #include "menu.h"
 
 static SceneId currScene = SCENE_MENU;
+static bool requestQuit = false;
 
 void SceneManager_Init(SceneId startScene, Config *cf) {
   currScene = startScene;
@@ -57,4 +58,10 @@ void SceneManager_ChangeScene(SceneId nextScene) {
   }
 }
 
-void SceneManager_Unload(void) { IntroScene_Unload(); }
+void SceneManager_Unload(void) {
+  IntroScene_Unload();
+  MenuScene_Unload();
+}
+
+void SceneManager_RequestQuit(void) { requestQuit = true; }
+bool SceneManager_ShouldQuit(void) { return requestQuit; }
