@@ -1,6 +1,7 @@
 #include "config/ini.h"
 #include "raylib.h"
 #include "video/player.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -41,6 +42,7 @@ static int LoadConfigurationHandler(void *config, const char *section,
 int main(void) {
 
   configuration config;
+  int monitor;
 
   if (ini_parse("config.ini", LoadConfigurationHandler, &config) < 0) {
     printf("Can't load 'config.ini'\n");
@@ -48,7 +50,14 @@ int main(void) {
   }
 
   SetTargetFPS(config.fps);
-  InitWindow(config.width, config.height, config.name);
+  if (config.fullscreen) {
+    monitor = GetCurrentMonitor();
+    ToggleFullscreen();
+    InitWindow(GetMonitorWidth(monitor), GetMonitorHeight(monitor),
+               config.name);
+  } else {
+    InitWindow(config.width, config.height, config.name);
+  }
   InitAudioDevice();
 
   Font spongebobFont =
@@ -60,6 +69,10 @@ int main(void) {
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
+
+    if (IsKeyPressed(KEY_F11)) {
+      ToggleFullscreen();
+    }
 
     Vector2 vec = {.x = 100, .y = 100};
     Vector2 vec2 = {.x = 0, .y = 0};
