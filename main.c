@@ -23,6 +23,8 @@ int main(void) {
                config.name);
   } else {
     InitWindow(config.width, config.height, config.name);
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
+    SetWindowMinSize(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2);
   }
   InitAudioDevice();
 
@@ -32,7 +34,7 @@ int main(void) {
     SceneManager_Update();
 
     BeginDrawing();
-    ClearBackground(RAYWHITE);
+    ClearBackground(BLACK);
 
     if (IsKeyPressed(KEY_F11)) {
       config.fullscreen = !config.fullscreen;
