@@ -18,6 +18,7 @@ and file handling.
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include "../util/paths.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -432,8 +433,14 @@ int ini_parse_string_length(const char *string, size_t length,
  * @param value const char key value
  * @return -1 on error, >=0 on success
  */
-int ini_write_pair(FILE *file, const char *section, const char *name,
-                   const char *value) {
+int ini_write_pair(const char *section, const char *name, const char *value) {
+
+  FILE *file = fopen(CONFIG_PATH, "r+");
+  if (!file) {
+    printf("Can't load 'config.ini'\n");
+    return -1;
+  }
+
   long file_size;
   size_t bytes_read;
   char *file_content;
@@ -522,12 +529,14 @@ int ini_write_pair(FILE *file, const char *section, const char *name,
 
   free(file_content);
   rewind(file);
+  fclose(file);
+  file = NULL;
   return (int)written;
 }
 
 int LoadConfigurationHandler(void *config, const char *section,
                              const char *name, const char *value) {
-  configuration *pconfig = (configuration *)config;
+  Config *pconfig = (Config *)config;
 
   if (MATCH("general", "version")) {
     pconfig->version = strdup(value);

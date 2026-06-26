@@ -114,11 +114,11 @@ typedef struct {
   bool fullscreen;
   int volume;
   bool intro;
-} configuration;
+} Config;
 
 /* Write/Overwrite a single name=value pair to the given file.
    Returns -1 on error, length of bytes written on success*/
-INI_API int ini_write_pair(FILE *file, const char *section, const char *name,
+INI_API int ini_write_pair(const char *section, const char *name,
                            const char *value);
 
 /* configuration handler read-only */
