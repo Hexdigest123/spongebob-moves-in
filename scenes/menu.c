@@ -23,8 +23,8 @@ void MenuScene_Init(void) {
 void MenuScene_Draw(void) {
   DrawTextureEx(textureWallpaper, (Vector2){0, 0}, 0, 1, WHITE);
   DrawTexturePro(uiTextures, recHomeSrc, homeButtonPos, (Vector2){}, 0, WHITE);
-  DrawTexturePro(uiTextures, recSettingsSrc, settingButtonPos, (Vector2){}, 0,
-                 WHITE);
+  /*DrawTexturePro(uiTextures, recSettingsSrc, settingButtonPos, (Vector2){}, 0,
+                 WHITE);*/
   DrawTexturePro(uiTextures, recBtnContinueSrc, continueButtonPos, (Vector2){},
                  continueButtonScale, WHITE);
 
